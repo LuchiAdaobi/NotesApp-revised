@@ -6,15 +6,14 @@ import Split from "react-split";
 import { nanoid } from "nanoid";
 
 export default function App() {
-  const [notes, setNotes] = useState( () => {
-    return JSON.parse(localStorage.getItem('notes')) || []
-});
+  const [notes, setNotes] = useState(() => {
+    return JSON.parse(localStorage.getItem("notes")) || [];
+  });
   const [currentNoteId, setCurrentNoteId] = useState(
     (notes[0] && notes[0].id) || ""
   );
 
   useEffect(() => {
-    //  save notes to local storage
     if (notes) {
       localStorage.setItem("notes", JSON.stringify(notes));
     }
@@ -29,15 +28,32 @@ export default function App() {
     setCurrentNoteId(newNote.id);
   }
 
+  // put the most recent note at the top
   function updateNote(text) {
-    setNotes((oldNotes) =>
-      oldNotes.map((oldNote) => {
-        return oldNote.id === currentNoteId
-          ? { ...oldNote, body: text }
-          : oldNote;
-      })
-    );
+    setNotes((prevNotes) => {
+      const newArray = [];
+      for (let i = 0; i < prevNotes.length; i++) {
+        const prevNote = prevNotes[i];
+        if (prevNote.id === currentNoteId) {
+          newArray.unshift({ ...prevNote, body: text });
+        } else {
+          newArray.push(prevNote);
+        }
+      }
+      return newArray;
+    });
   }
+
+  // this does not rearrange the notes
+  // function updateNote(text) {
+  //   setNotes((oldNotes) =>
+  //     oldNotes.map((oldNote) => {
+  //       return oldNote.id === currentNoteId
+  //         ? { ...oldNote, body: text }
+  //         : oldNote;
+  //     })
+  //   );
+  // }
 
   function findCurrentNote() {
     return (
