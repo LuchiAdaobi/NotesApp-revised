@@ -27,11 +27,6 @@ button:focus {
   width: 20%;
   height: 100vh;
 }
-
-.sidebar--note {
-  /* display: flex; */
-}
-
 .sidebar--header {
   display: flex;
   justify-content: space-around;
@@ -81,13 +76,7 @@ button:focus {
   background-color: transparent;
   border: none;
 }
-/* .title:hover{
-  background-color: #4a4e74;
 
-}
-.text-snippet:hover{
-    color: #eee;
-} */
 .title:hover .title--delete {
   display: block;
 }
