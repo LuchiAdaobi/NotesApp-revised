@@ -62,6 +62,16 @@ export default function App() {
       }) || notes[0]
     );
   }
+ function deleteNote(e, noteId){
+    e.stopPropagation()
+  setNotes(prevNotes => {
+    return prevNotes.filter((note)=> {
+      return note.id !== noteId
+    })
+  })
+   
+ }
+
 
   return (
     <main>
@@ -72,6 +82,7 @@ export default function App() {
             currentNote={findCurrentNote()}
             setCurrentNoteId={setCurrentNoteId}
             newNote={createNewNote}
+            deleteNote={deleteNote}
           />
           {currentNoteId && notes.length > 0 && (
             <Editor currentNote={findCurrentNote()} updateNote={updateNote} />
