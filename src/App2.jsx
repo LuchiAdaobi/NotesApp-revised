@@ -1,37 +1,63 @@
+// USING LOCAL STORAGE
+
+
+
 import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Split from "react-split";
-import { onSnapshot, addDoc } from "firebase/firestore";
+import { nanoid } from "nanoid";
+import { onSnapshot } from "firebase/firestore";
 import { notesCollection } from "./firebase";
 
 export default function App() {
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState(() => {
+    return JSON.parse(localStorage.getItem("notes")) || [];
+  });
+
+//   FIREBASE
+//   const [notes, setNotes] = useState([]);
   const [currentNoteId, setCurrentNoteId] = useState(notes[0]?.id || "");
 
   const currentNote =
     notes.find((note) => note.id === currentNoteId) || notes[0];
 
-  // firebase db
+  // Local storage
   useEffect(() => {
-    const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
-      // Sync up our local notes array with the snapshot data
-      const notesArr = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setNotes(notesArr);
-    });
-    return unsubscribe;
-  }, []);
+    if (notes) {
+      localStorage.setItem("notes", JSON.stringify(notes));
+    }
+  }, [notes]);
 
-  async function createNewNote() {
+  // firebase db
+//   useEffect(() => {
+//     const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
+//       // Sync up our local notes array with the snapshot data
+//       const notesArr = snapshot.docs.map((doc) => ({
+//         ...doc.data(),
+//         id: doc.id,
+//       }));
+//       setNotes(notesArr);
+//     });
+//     return unsubscribe;
+//   }, []);
+
+  function createNewNote() {
     const newNote = {
-      body: "# Type your markdown note's title here",
+          id: nanoid(),
+        body: "# Type your markdown note's title here",
     };
-    const newNoteRef = await addDoc(notesCollection, newNote);
-    setCurrentNoteId(newNoteRef.id);
-  }
+    setNotes((prevNotes) => [newNote, ...prevNotes]);
+    setCurrentNoteId(newNote.id);
+}
+// FIREBASE nEW NOTE
+//  async function createNewNote() {
+//    const newNote = {
+//      body: "# Type your markdown note's title here",
+//    };
+//    const newNoteRef = await addDoc(notesCollection, newNote);
+//    setCurrentNoteId(newNoteRef.id);
+//  }
 
   // put the most recent note at the top
   function updateNote(text) {
