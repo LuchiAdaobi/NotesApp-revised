@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Split from "react-split";
-import { onSnapshot, addDoc } from "firebase/firestore";
-import { notesCollection } from "./firebase";
+import { onSnapshot, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { notesCollection, db } from "./firebase";
 
 export default function App() {
   const [notes, setNotes] = useState([]);
@@ -49,24 +49,9 @@ export default function App() {
     });
   }
 
-  // this does not rearrange the notes
-  // function updateNote(text) {
-  //   setNotes((oldNotes) =>
-  //     oldNotes.map((oldNote) => {
-  //       return oldNote.id === currentNoteId
-  //         ? { ...oldNote, body: text }
-  //         : oldNote;
-  //     })
-  //   );
-  // }
-
-  function deleteNote(e, noteId) {
-    e.stopPropagation();
-    setNotes((prevNotes) => {
-      return prevNotes.filter((note) => {
-        return note.id !== noteId;
-      });
-    });
+  async function deleteNote(noteId) {
+    const docRef = doc(db, 'notes', noteId )
+    await deleteDoc(docRef)
   }
 
   return (
