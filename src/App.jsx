@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Split from "react-split";
-import { onSnapshot, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { onSnapshot, addDoc, doc, deleteDoc, setDoc } from "firebase/firestore";
 import { notesCollection, db } from "./firebase";
 
 export default function App() {
   const [notes, setNotes] = useState([]);
-  const [currentNoteId, setCurrentNoteId] = useState(notes[0]?.id || "");
+  const [currentNoteId, setCurrentNoteId] = useState("");
 
   const currentNote =
     notes.find((note) => note.id === currentNoteId) || notes[0];
@@ -25,6 +25,12 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (!currentNoteId) {
+      setCurrentNoteId(notes[0]?.id);
+    }
+  }, []);
+
   async function createNewNote() {
     const newNote = {
       body: "# Type your markdown note's title here",
@@ -34,24 +40,14 @@ export default function App() {
   }
 
   // put the most recent note at the top
-  function updateNote(text) {
-    setNotes((prevNotes) => {
-      const newArray = [];
-      for (let i = 0; i < prevNotes.length; i++) {
-        const prevNote = prevNotes[i];
-        if (prevNote.id === currentNoteId) {
-          newArray.unshift({ ...prevNote, body: text });
-        } else {
-          newArray.push(prevNote);
-        }
-      }
-      return newArray;
-    });
+  async function updateNote(text) {
+    const docRef = doc(db, "notes", currentNoteId);
+    await setDoc(docRef, { body: text }, { merge: true });
   }
 
   async function deleteNote(noteId) {
-    const docRef = doc(db, 'notes', noteId )
-    await deleteDoc(docRef)
+    const docRef = doc(db, "notes", noteId);
+    await deleteDoc(docRef);
   }
 
   return (
@@ -65,9 +61,8 @@ export default function App() {
             newNote={createNewNote}
             deleteNote={deleteNote}
           />
-          {currentNoteId && notes.length > 0 && (
-            <Editor currentNote={currentNote} updateNote={updateNote} />
-          )}
+
+          <Editor currentNote={currentNote} updateNote={updateNote} />
         </Split>
       ) : (
         <div className="no-notes">
