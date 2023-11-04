@@ -8,9 +8,28 @@ import { notesCollection, db } from "./firebase";
 export default function App() {
   const [notes, setNotes] = useState([]);
   const [currentNoteId, setCurrentNoteId] = useState("");
+  const [tempNoteText, setTempNoteText] = useState("");
 
   const currentNote =
     notes.find((note) => note.id === currentNoteId) || notes[0];
+
+  const sortedNotes = notes.sort((a, b) => b.updatedAt - a.updatedAt);
+
+  useEffect(() => {
+    if (currentNote) {
+      setTempNoteText(currentNote.body);
+    }
+  }, [currentNote]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (tempNoteText !== currentNote.body) {
+        updateNote(tempNoteText);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [tempNoteText]);
 
   // firebase db
   useEffect(() => {
@@ -34,6 +53,8 @@ export default function App() {
   async function createNewNote() {
     const newNote = {
       body: "# Type your markdown note's title here",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     };
     const newNoteRef = await addDoc(notesCollection, newNote);
     setCurrentNoteId(newNoteRef.id);
@@ -42,7 +63,11 @@ export default function App() {
   // put the most recent note at the top
   async function updateNote(text) {
     const docRef = doc(db, "notes", currentNoteId);
-    await setDoc(docRef, { body: text }, { merge: true });
+    await setDoc(
+      docRef,
+      { body: text, updatedAt: Date.now() },
+      { merge: true }
+    );
   }
 
   async function deleteNote(noteId) {
@@ -55,14 +80,17 @@ export default function App() {
       {notes.length > 0 ? (
         <Split sizes={[30, 70]} direction="horizontal" className="split">
           <Sidebar
-            notes={notes}
+            notes={sortedNotes}
             currentNote={currentNote}
             setCurrentNoteId={setCurrentNoteId}
             newNote={createNewNote}
             deleteNote={deleteNote}
           />
 
-          <Editor currentNote={currentNote} updateNote={updateNote} />
+          <Editor
+            tempNoteText={tempNoteText}
+            setTempNoteText={setTempNoteText}
+          />
         </Split>
       ) : (
         <div className="no-notes">
